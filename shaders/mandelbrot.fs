@@ -6,6 +6,7 @@ in vec4 fragColor;
 out vec4 pixelColor;
 
 uniform float res;
+uniform int maxIter;
 
 vec2 squareComplex(vec2 z) {
     return vec2(
@@ -19,12 +20,13 @@ void main() {
     uv.x *= res;
 
     vec2 p = uv;
-    for (int i = 1; i < 100; i++) {
+    int i = 1;
+    for ( ; i < maxIter; i++) {
         p = squareComplex(p) + uv;
         if ((p.x * p.x + p.y * p.y) > 4) break;
     }
 
-    float color = 1;
+    float color = clamp(float(i) / (maxIter/2), 0, 1);
     if ((p.x * p.x + p.y * p.y) < 4) color = 0;
 
     pixelColor = vec4(color, color, color, 1);

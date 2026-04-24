@@ -17,14 +17,18 @@ int main() {
     SetTargetFPS(120);
 
     Shader shaderMandelbrot = LoadShader(0, "./shaders/mandelbrot.fs");
-    int resLoc = GetShaderLocation(shaderMandelbrot, "res");
+    int locRes = GetShaderLocation(shaderMandelbrot, "res");
+    int locMaxIter = GetShaderLocation(shaderMandelbrot, "maxIter");
+
+    float res = (float) GetScreenWidth() / (float) GetScreenHeight();
+    SetShaderValue(shaderMandelbrot, locRes, &res, SHADER_UNIFORM_FLOAT);
+
+    int maxIter = 100;
+    SetShaderValue(shaderMandelbrot, locMaxIter, &maxIter, SHADER_UNIFORM_INT);
 
     RenderTexture2D target = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
     
     while (!WindowShouldClose()) {
-        float res = (float) GetScreenWidth() / (float) GetScreenHeight();
-        SetShaderValue(shaderMandelbrot, resLoc, &res, SHADER_UNIFORM_FLOAT);
-
         BeginTextureMode(target);
             ClearBackground(BLACK);
             DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), BLACK);
