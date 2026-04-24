@@ -5,6 +5,8 @@ in vec4 fragColor;
 
 out vec4 pixelColor;
 
+uniform float res;
+
 vec2 squareComplex(vec2 z) {
     return vec2(
         z.x * z.x - z.y * z.y,
@@ -14,6 +16,8 @@ vec2 squareComplex(vec2 z) {
 
 void main() {
     vec2 uv = (fragTexCoord * 2 - 1) * 2;
+    uv.x *= res;
+
     vec2 p = uv;
     for (int i = 1; i < 100; i++) {
         p = squareComplex(p) + uv;

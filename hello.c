@@ -6,7 +6,7 @@
 #define MIN(a, b) (a < b ? a : b)
 
 #define SCREEN_WIDTH 800
-#define SCREEN_HEIGHT 800
+#define SCREEN_HEIGHT 600
 
 #define TITLE_FONT_SIZE 60
 
@@ -17,10 +17,14 @@ int main() {
     SetTargetFPS(120);
 
     Shader shaderMandelbrot = LoadShader(0, "./shaders/mandelbrot.fs");
+    int resLoc = GetShaderLocation(shaderMandelbrot, "res");
 
     RenderTexture2D target = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
     
     while (!WindowShouldClose()) {
+        float res = (float) GetScreenWidth() / (float) GetScreenHeight();
+        SetShaderValue(shaderMandelbrot, resLoc, &res, SHADER_UNIFORM_FLOAT);
+
         BeginTextureMode(target);
             ClearBackground(BLACK);
             DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), BLACK);
