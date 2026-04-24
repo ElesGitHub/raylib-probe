@@ -10,12 +10,7 @@
 
 #define TITLE_FONT_SIZE 60
 
-int main() {
-    printf("Hello, World!\n");
-
-    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Hello, World!");
-    SetTargetFPS(120);
-
+Shader loadMandelbrotShader() {
     Shader shaderMandelbrot = LoadShader(0, "./shaders/mandelbrot.fs");
     int locRes = GetShaderLocation(shaderMandelbrot, "res");
     int locMaxIter = GetShaderLocation(shaderMandelbrot, "maxIter");
@@ -26,9 +21,25 @@ int main() {
     int maxIter = 100;
     SetShaderValue(shaderMandelbrot, locMaxIter, &maxIter, SHADER_UNIFORM_INT);
 
+    return shaderMandelbrot;
+}
+
+int main() {
+    printf("Hello, World!\n");
+
+    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Hello, World!");
+    SetTargetFPS(120);
+
+    Shader shaderMandelbrot = loadMandelbrotShader();
+
     RenderTexture2D target = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
     
     while (!WindowShouldClose()) {
+        if (IsKeyPressed(KEY_R)) {
+            UnloadShader(shaderMandelbrot);
+            shaderMandelbrot = loadMandelbrotShader();
+        }
+
         BeginTextureMode(target);
             ClearBackground(BLACK);
             DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), BLACK);
@@ -43,6 +54,7 @@ int main() {
         EndDrawing();
     }
 
+    UnloadShader(shaderMandelbrot);
     CloseWindow();
 
     return 0;

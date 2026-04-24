@@ -26,7 +26,7 @@ void main() {
         if ((p.x * p.x + p.y * p.y) > 4) break;
     }
 
-    float color = clamp(float(i) / (maxIter/2), 0, 1);
+    float color = clamp(float(i) / (maxIter/4), 0, 1);
     if ((p.x * p.x + p.y * p.y) < 4) color = 0;
 
     pixelColor = vec4(color, color, color, 1);
