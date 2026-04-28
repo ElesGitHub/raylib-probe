@@ -2,6 +2,23 @@
 
 #include <raylib.h>
 
+#if defined(_WIN32)
+// Including the windows.h header induces a lot of collisions with raylib symbols.
+// For now, symbols needed by the program will be defined in a helper header file.
+//#   include <windows.h>
+#   include <windows/miniwin.h>
+#   define LIBTYPE HINSTANCE
+#   define OPENLIB(libname) LoadLibraryW(L ## libname)
+#   define LIBFUNC(lib, fn) GetProcAddress((lib), (fn))
+#   define CLOSELIB(lib) FreeLibrary((lib))
+#else
+#   include <dlfcn.h>
+#   define LIBTYPE void*
+#   define OPENLIB(libname) dlopen((libname), RTLD_LAZY)
+#   define LIBFUNC(lib, fn) dlsym((lib), (fn))
+#   define CLOSELIB(lib) dlclose((lib))
+#endif // defined(_WIN32)
+
 #define MAX(a, b) (a > b ? a : b)
 #define MIN(a, b) (a < b ? a : b)
 
@@ -26,6 +43,10 @@ Shader loadMandelbrotShader() {
 
 int main() {
     printf("Hello, World!\n");
+
+    LIBTYPE dl = OPENLIB("test.dll");
+    FARPROC myDynSum = LIBFUNC(dl, "myDynSum");
+    printf("myDynSum(2, 8) -> %d\n", myDynSum(2, 8));
 
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Hello, World!");
     SetTargetFPS(120);

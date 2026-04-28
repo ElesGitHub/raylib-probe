@@ -1,3 +1,9 @@
-*.exe*
+*.old
+
+*.exe
+*.dll
+
+*.out
+*.so
 
 lib/
