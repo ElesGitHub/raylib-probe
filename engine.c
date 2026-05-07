@@ -1,29 +1,15 @@
 #include <stdio.h>
 
 #include <raylib.h>
+#include <dynlib.h>
 
-#if defined(_WIN32)
-// Including the windows.h header induces a lot of collisions with raylib symbols.
-// For now, symbols needed by the program will be defined in a helper header file.
-//#   include <windows.h>
-#   include <windows/miniwin.h>
-#   define LIBTYPE HINSTANCE
-#   define OPENLIB(libname) LoadLibraryW(L ## libname)
-#   define LIBFUNC(lib, fn) GetProcAddress((lib), (fn))
-#   define CLOSELIB(lib) FreeLibrary((lib))
-#else
-#   include <dlfcn.h>
-#   define LIBTYPE void*
-#   define OPENLIB(libname) dlopen((libname), RTLD_LAZY)
-#   define LIBFUNC(lib, fn) dlsym((lib), (fn))
-#   define CLOSELIB(lib) dlclose((lib))
-#endif // defined(_WIN32)
+#include <common.h>
 
 #define MAX(a, b) (a > b ? a : b)
 #define MIN(a, b) (a < b ? a : b)
 
-#define SCREEN_WIDTH 800
-#define SCREEN_HEIGHT 600
+#define SCREEN_WIDTH 1200
+#define SCREEN_HEIGHT 800
 
 #define TITLE_FONT_SIZE 60
 
@@ -44,38 +30,22 @@ Shader loadMandelbrotShader() {
 int main() {
     printf("Hello, World!\n");
 
-    LIBTYPE dl = OPENLIB("test.dll");
-    FARPROC myDynSum = LIBFUNC(dl, "myDynSum");
-    printf("myDynSum(2, 8) -> %d\n", myDynSum(2, 8));
-
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Hello, World!");
     SetTargetFPS(120);
 
-    Shader shaderMandelbrot = loadMandelbrotShader();
+    DynLib scene = dynLibOpen("./plugins/mandelbrot.so");
+    void (*load)(SceneState *) = (void(*)(SceneState*)) dynLibLoadFunction(scene, "load");
+    void (*update)(SceneState *) = (void(*)(SceneState*)) dynLibLoadFunction(scene, "update");
+    void (*unload)(SceneState *) = (void(*)(SceneState*)) dynLibLoadFunction(scene, "unload");
 
-    RenderTexture2D target = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
-    
+    SceneState state = {0};
+    load(&state);
+
     while (!WindowShouldClose()) {
-        if (IsKeyPressed(KEY_R)) {
-            UnloadShader(shaderMandelbrot);
-            shaderMandelbrot = loadMandelbrotShader();
-        }
-
-        BeginTextureMode(target);
-            ClearBackground(BLACK);
-            DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), BLACK);
-        EndTextureMode();
-    
-        BeginDrawing();
-            ClearBackground(BLACK);
-            
-            BeginShaderMode(shaderMandelbrot);
-                DrawTextureEx(target.texture, (Vector2){0.0f, 0.0f}, 0.0f, 1.0f, WHITE);
-            EndShaderMode();
-        EndDrawing();
+        update(&state);
     }
 
-    UnloadShader(shaderMandelbrot);
+    unload(&state);
     CloseWindow();
 
     return 0;
