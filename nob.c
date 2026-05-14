@@ -1,8 +1,38 @@
 #include <stdio.h>
 #include <strings.h>
 
+// Re-define rebuild command to include header files
+//#ifndef NOB_REBUILD_URSELF
+#  if defined(_WIN32)
+#    if defined(__clang__)
+#      if defined(__cplusplus)
+#        define NOB_REBUILD_URSELF(binary_path, source_path) "clang", "-x", "c++", "-Iincludes", "-o", binary_path, source_path
+#      else
+#        define NOB_REBUILD_URSELF(binary_path, source_path) "clang", "-x", "c", "-Iincludes", "-o", binary_path, source_path
+#      endif
+#    elif defined(__GNUC__)
+#      if defined(__cplusplus)
+#        define NOB_REBUILD_URSELF(binary_path, source_path) "gcc", "-x", "c++", "-Iincludes", "-o", binary_path, source_path
+#      else
+#        define NOB_REBUILD_URSELF(binary_path, source_path) "gcc", "-x", "c", "-Iincludes", "-o", binary_path, source_path
+#      endif
+#    elif defined(_MSC_VER)
+#       define NOB_REBUILD_URSELF(binary_path, source_path) "cl.exe", nob_temp_sprintf("/Fe:%s", (binary_path)), source_path
+#    elif defined(__TINYC__)
+#       define NOB_REBUILD_URSELF(binary_path, source_path) "tcc", "-Iincludes", "-o", binary_path, source_path
+#    endif
+#  else
+#    if defined(__cplusplus)
+#      define NOB_REBUILD_URSELF(binary_path, source_path) "cc", "-x", "c++", "-Iincludes", "-o", binary_path, source_path
+#    else
+#      define NOB_REBUILD_URSELF(binary_path, source_path) "cc", "-x", "c", "-Iincludes", "-o", binary_path, source_path
+#    endif
+#  endif
+//#endif
+
 #define NOB_IMPLEMENTATION
-#include "includes/nob.h"
+#include <nob.h>
+#include <common.h>
 
 #define CC "gcc"
 #define SRC_PATH "engine.c"
