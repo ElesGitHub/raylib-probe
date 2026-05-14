@@ -46,6 +46,25 @@
 #   define SYS_LIBS "-lm", "-ldl"
 #endif // defined(_WIN32)
 
+bool compileScene(Walk_Entry entry) {
+    printf("%*s%s\n", entry.level * 2, "", entry.path);
+    if (entry.type != FILE_REGULAR) return true;
+    
+    String_View filename = sv_from_cstr(nob_temp_file_name(entry.path));
+    String_View filename_trimmed = sv_chop_by_delim(&filename, '.');
+
+    char *path_in = nob_temp_sprintf("./scenes/"SV_Fmt".c", SV_Arg(filename_trimmed));
+    char *path_out = nob_temp_sprintf("./plugins/"SV_Fmt".so", SV_Arg(filename_trimmed));
+
+    Cmd cmd = {0};
+    cmd_append(&cmd, CC);
+    cmd_append(&cmd, "-shared", "-fPIC", "-o", path_out, path_in);
+    cmd_append(&cmd, COMMON_FLAGS);
+    cmd_run(&cmd);
+
+    return true;
+}
+
 int main(int argc, char** argv) {
     GO_REBUILD_URSELF(argc, argv);
     
@@ -68,14 +87,8 @@ int main(int argc, char** argv) {
 
     if (!mkdir_if_not_exists("plugins")) return 1;
 
-    cmd_append(&cmd, CC);
-    cmd_append(&cmd, "-shared", "-o", "./plugins/test.so", "./scenes/test.c");
-    cmd_run(&cmd);
-
-    cmd_append(&cmd, CC);
-    cmd_append(&cmd, "-shared", "-fPIC", "-o", "./plugins/mandelbrot.so", "./scenes/mandelbrot.c");
-    cmd_append(&cmd, COMMON_FLAGS);
-    cmd_run(&cmd);
+    const char *dir_path = "./scenes";
+    walk_dir(dir_path, compileScene);
 
     return 0;
 }
