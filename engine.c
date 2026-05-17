@@ -3,61 +3,87 @@
 #include <raylib.h>
 #include <dynlib.h>
 
-#include <common.h>
+#define NOB_IMPLEMENTATION
+#include <nob.h>
 
-#define MAX(a, b) (a > b ? a : b)
-#define MIN(a, b) (a < b ? a : b)
+#include <common.h>
 
 #define SCREEN_WIDTH 1200
 #define SCREEN_HEIGHT 800
 
 #define TITLE_FONT_SIZE 60
 
-Shader loadMandelbrotShader() {
-    Shader shaderMandelbrot = LoadShader(0, "./shaders/mandelbrot.fs");
-    int locRes = GetShaderLocation(shaderMandelbrot, "res");
-    int locMaxIter = GetShaderLocation(shaderMandelbrot, "maxIter");
+typedef void (*SceneAction)(SceneState *state);
 
-    float res = (float) GetScreenWidth() / (float) GetScreenHeight();
-    SetShaderValue(shaderMandelbrot, locRes, &res, SHADER_UNIFORM_FLOAT);
+typedef struct {
+    DynLib dll;
+    const char *path;
+    
+    SceneAction load;
+    SceneAction update;
+    SceneAction unload;
 
-    int maxIter = 100;
-    SetShaderValue(shaderMandelbrot, locMaxIter, &maxIter, SHADER_UNIFORM_INT);
+    SceneState state;
+} Scene;
 
-    return shaderMandelbrot;
+// TODO Use walk_dir function from nob.h
+const char *pluginPaths[2] = {
+    "./plugins/hello_raylib.so",
+    "./plugins/mandelbrot.so"
+};
+
+void loadScene(Scene *scene, const char *path) {
+    if (scene->unload) scene->unload(&scene->state);
+    scene->state = (SceneState){0};
+
+    if (scene->dll) dynLibClose(scene->dll);
+
+    scene->path = path;
+    scene->dll  = dynLibOpen(path);
+
+    scene->load   = (SceneAction) dynLibLoadFunction(scene->dll, "load");
+    scene->update = (SceneAction) dynLibLoadFunction(scene->dll, "update");
+    scene->unload = (SceneAction) dynLibLoadFunction(scene->dll, "unload");
+
+    scene->load(&scene->state);
+}
+
+void recompileScene(Scene *scene) {
+    String_View filename = sv_from_cstr(nob_temp_file_name(scene->path));
+    String_View filename_trimmed = sv_chop_by_delim(&filename, '.');
+
+    char *path_in = nob_temp_sprintf("./scenes/"SV_Fmt".c", SV_Arg(filename_trimmed));
+    char *path_out = nob_temp_sprintf("./plugins/"SV_Fmt".so", SV_Arg(filename_trimmed));
+
+    Cmd cmd = {0};
+    cmd_append(&cmd, CC);
+    cmd_append(&cmd, "-shared", "-fPIC", "-o", path_out, path_in);
+    cmd_append(&cmd, COMMON_FLAGS);
+    cmd_run(&cmd);
+
+    loadScene(scene, scene->path);
 }
 
 int main() {
-    printf("Hello, World!\n");
-
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Hello, World!");
     SetTargetFPS(120);
 
-    DynLib scene = dynLibOpen("./plugins/mandelbrot.so");
-    void (*load)(SceneState *) = (void(*)(SceneState*)) dynLibLoadFunction(scene, "load");
-    void (*update)(SceneState *) = (void(*)(SceneState*)) dynLibLoadFunction(scene, "update");
-    void (*unload)(SceneState *) = (void(*)(SceneState*)) dynLibLoadFunction(scene, "unload");
-
-    SceneState state = {0};
-    load(&state);
+    Scene scene = {0};
+    loadScene(&scene, pluginPaths[0]);
 
     while (!WindowShouldClose()) {
-        update(&state);
+        if (IsKeyPressed(KEY_ONE)) {
+            loadScene(&scene, pluginPaths[0]);
+        } else if (IsKeyPressed(KEY_TWO)) {
+            loadScene(&scene, pluginPaths[1]);
+        } else if (IsKeyPressed(KEY_R)) {
+            recompileScene(&scene);
+        }
+        scene.update(&scene.state);
     }
 
-    unload(&state);
+    scene.unload(&scene.state);
     CloseWindow();
 
     return 0;
 }
-
-
-    //BeginDrawing();
-
-    //    ClearBackground(RED);
-
-    //    // void DrawText(const char *text, int posX, int posY, int fontSize, Color color);
-    //    DrawText(TextFormat("FPS: %i", GetFPS()), 0, 0, 20, BLACK);
-    //    DrawText("Hello, Raylib!", 200, (SCREEN_HEIGHT / 2) - (TITLE_FONT_SIZE / 2), TITLE_FONT_SIZE, BLACK);
-
-    //EndDrawing();

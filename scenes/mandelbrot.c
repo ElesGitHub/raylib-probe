@@ -26,11 +26,6 @@ void load(SceneState *state) {
 }
 
 void update(SceneState *state) {
-    if (IsKeyPressed(KEY_R)) {
-        UnloadShader(state->shader);
-        state->shader = loadMandelbrotShader();
-    }
-
     BeginTextureMode(state->target);
         ClearBackground(BLACK);
         DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), BLACK);

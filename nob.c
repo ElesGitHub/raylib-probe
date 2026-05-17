@@ -34,18 +34,6 @@
 #include <nob.h>
 #include <common.h>
 
-#define CC "gcc"
-#define SRC_PATH "engine.c"
-#define COMMON_FLAGS "-Iincludes", "-Llib", "-lraylib", "-Wl,-rpath,$ORIGIN/lib"
-
-#if defined(_WIN32)
-#   define OUT_PATH "engine.exe"
-#   define SYS_LIBS "-lgdi32", "-lwinmm"
-#else
-#   define OUT_PATH "engine.out"
-#   define SYS_LIBS "-lm", "-ldl"
-#endif // defined(_WIN32)
-
 bool compileScene(Walk_Entry entry) {
     printf("%*s%s\n", entry.level * 2, "", entry.path);
     if (entry.type != FILE_REGULAR) return true;
