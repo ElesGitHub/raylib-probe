@@ -4,6 +4,11 @@
 
 #include <common.h>
 
+typedef struct {
+    Shader shader;
+    RenderTexture2D target;
+} SceneState;
+
 Shader loadMandelbrotShader() {
     Shader shaderMandelbrot = LoadShader(0, "./shaders/mandelbrot.fs");
     int locRes = GetShaderLocation(shaderMandelbrot, "res");

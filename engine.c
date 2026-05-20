@@ -13,7 +13,7 @@
 
 #define TITLE_FONT_SIZE 60
 
-typedef void (*SceneAction)(SceneState *state);
+typedef void (*SceneAction)(void *state);
 
 typedef struct {
     DynLib dll;
@@ -22,8 +22,6 @@ typedef struct {
     SceneAction load;
     SceneAction update;
     SceneAction unload;
-
-    SceneState state;
 } Scene;
 
 // TODO Use walk_dir function from nob.h
@@ -32,9 +30,12 @@ const char *pluginPaths[2] = {
     "./plugins/mandelbrot.so"
 };
 
+#define STATE_POOL_CAP (4 * 1024)
+char statePool[STATE_POOL_CAP] = {0};
+
 void loadScene(Scene *scene, const char *path) {
-    if (scene->unload) scene->unload(&scene->state);
-    scene->state = (SceneState){0};
+    if (scene->unload) scene->unload(statePool);
+    bzero(statePool, STATE_POOL_CAP);
 
     if (scene->dll) dynLibClose(scene->dll);
 
@@ -45,7 +46,7 @@ void loadScene(Scene *scene, const char *path) {
     scene->update = (SceneAction) dynLibLoadFunction(scene->dll, "update");
     scene->unload = (SceneAction) dynLibLoadFunction(scene->dll, "unload");
 
-    scene->load(&scene->state);
+    scene->load(statePool);
 }
 
 void recompileScene(Scene *scene) {
@@ -79,10 +80,10 @@ int main() {
         } else if (IsKeyPressed(KEY_R)) {
             recompileScene(&scene);
         }
-        scene.update(&scene.state);
+        scene.update(statePool);
     }
 
-    scene.unload(&scene.state);
+    scene.unload(statePool);
     CloseWindow();
 
     return 0;

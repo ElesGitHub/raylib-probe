@@ -19,9 +19,4 @@
 #   define SYS_LIBS "-lm", "-ldl"
 #endif // defined(_WIN32)
 
-typedef struct {
-    Shader shader;
-    RenderTexture2D target;
-} SceneState;
-
 #endif // COMMON_H_

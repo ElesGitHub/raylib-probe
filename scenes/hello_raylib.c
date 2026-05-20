@@ -4,15 +4,13 @@
 
 #include <common.h>
 
-void load(SceneState *state) {
-}
+void load(void *state) {}
 
-void unload(SceneState *state) {
-}
+void unload(void *state) {}
 
 #define TITLE_FONT_SIZE 120
 
-void update(SceneState *state) {
+void update(void *state) {
     BeginDrawing();
 
         ClearBackground(BLACK);
