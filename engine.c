@@ -25,9 +25,11 @@ typedef struct {
 } Scene;
 
 // TODO Use walk_dir function from nob.h
-const char *pluginPaths[2] = {
+const char *pluginPaths[4] = {
+    "./plugins/test.so",
     "./plugins/hello_raylib.so",
-    "./plugins/mandelbrot.so"
+    "./plugins/mandelbrot.so",
+    "./plugins/rain.so"
 };
 
 #define STATE_POOL_CAP (4 * 1024)
@@ -66,20 +68,29 @@ void recompileScene(Scene *scene) {
 }
 
 int main() {
-    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Hello, World!");
+    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Shader Visualizer");
     SetTargetFPS(120);
 
     Scene scene = {0};
-    loadScene(&scene, pluginPaths[0]);
+    loadScene(&scene, pluginPaths[1]);
 
     while (!WindowShouldClose()) {
-        if (IsKeyPressed(KEY_ONE)) {
-            loadScene(&scene, pluginPaths[0]);
-        } else if (IsKeyPressed(KEY_TWO)) {
+        if (IsKeyPressed(KEY_ZERO) || IsKeyPressed(KEY_T)) {
+            //loadScene(&scene, pluginPaths[0]);
+
+        } else if (IsKeyPressed(KEY_ONE)) {
             loadScene(&scene, pluginPaths[1]);
+
+        } else if (IsKeyPressed(KEY_TWO)) {
+            loadScene(&scene, pluginPaths[2]);
+
+        } else if (IsKeyPressed(KEY_THREE)) {
+            loadScene(&scene, pluginPaths[3]);
+        
         } else if (IsKeyPressed(KEY_R)) {
             recompileScene(&scene);
         }
+
         scene.update(statePool);
     }
 
