@@ -70,25 +70,30 @@ void recompileScene(Scene *scene) {
 int main() {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Shader Visualizer");
     SetTargetFPS(120);
+    SetExitKey(KEY_NULL);
 
     Scene scene = {0};
     loadScene(&scene, pluginPaths[1]);
 
     while (!WindowShouldClose()) {
-        if (IsKeyPressed(KEY_ZERO) || IsKeyPressed(KEY_T)) {
-            //loadScene(&scene, pluginPaths[0]);
+        if (IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL)) {
+            if (IsKeyPressed(KEY_ESCAPE)) break;
 
-        } else if (IsKeyPressed(KEY_ONE)) {
-            loadScene(&scene, pluginPaths[1]);
+            if (IsKeyPressed(KEY_ZERO) || IsKeyPressed(KEY_T)) {
+                //loadScene(&scene, pluginPaths[0]);
 
-        } else if (IsKeyPressed(KEY_TWO)) {
-            loadScene(&scene, pluginPaths[2]);
+            } else if (IsKeyPressed(KEY_ONE)) {
+                loadScene(&scene, pluginPaths[1]);
 
-        } else if (IsKeyPressed(KEY_THREE)) {
-            loadScene(&scene, pluginPaths[3]);
-        
-        } else if (IsKeyPressed(KEY_R)) {
-            recompileScene(&scene);
+            } else if (IsKeyPressed(KEY_TWO)) {
+                loadScene(&scene, pluginPaths[2]);
+
+            } else if (IsKeyPressed(KEY_THREE)) {
+                loadScene(&scene, pluginPaths[3]);
+            
+            } else if (IsKeyPressed(KEY_R)) {
+                recompileScene(&scene);
+            }
         }
 
         scene.update(statePool);
