@@ -34,6 +34,9 @@
 #include <nob.h>
 #include <common.h>
 
+#define FLAGS_IMPLEMENTATION
+#include <flags.h>
+
 bool compileScene(Walk_Entry entry) {
     printf("%*s%s\n", entry.level * 2, "", entry.path);
     if (entry.type != FILE_REGULAR) return true;
@@ -55,15 +58,25 @@ bool compileScene(Walk_Entry entry) {
 
 int main(int argc, char** argv) {
     GO_REBUILD_URSELF(argc, argv);
+
+    FlagContext flagctx = {0};
+
+    bool *run  = flag_register_bool(&flagctx, "run", "Runs the program after compiling.");
+    bool *test = flag_register_bool(&flagctx, "test", "Compiles a test case instead of the main program.");
+
+    flag_parse(&flagctx, argc, argv);
     
     Cmd cmd = {0};
 
-    if (argc > 1 && strcmp(argv[1], "test") == 0) {
+    if (*test) {
         cmd_append(&cmd, CC);
         cmd_append(&cmd, "-o", "test.out", "test.c");
         cmd_append(&cmd, COMMON_FLAGS);
         cmd_append(&cmd, SYS_LIBS);
         cmd_run(&cmd);
+
+        if (*run) cmd_append(&cmd, "./test.out");
+
         return 0;
     }
 
@@ -77,6 +90,11 @@ int main(int argc, char** argv) {
 
     const char *dir_path = "./scenes";
     walk_dir(dir_path, compileScene);
+
+    if (*run) {
+        cmd_append(&cmd, "./"OUT_PATH);
+        cmd_run(&cmd);
+    }
 
     return 0;
 }
